@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moon Phase Tracker Widget</title>
+<style>
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  perspective: 800px;
+}
+
+#moon-widget {
+  position: relative;
+  font-family: "Segoe UI", sans-serif;
+  width: 100%;
+  height: 100%;
+  border-radius: 25px;
+  padding: 8%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #2b2b2b, #1e1a2c);
+  box-shadow: 0 12px 20px rgba(0,0,0,0.6), 0 0 20px rgba(196,138,255,0.4);
+  overflow: hidden;
+  transform: rotateX(3deg) rotateY(-3deg);
+  animation: bgShift 12s ease-in-out infinite alternate;
+  z-index: 0;
+}
+
+/* Floating magical orbs */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,138,255,0.8) 0%, rgba(196,138,255,0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Moon icon */
+#moon-icon {
+  position: relative;
+  width: clamp(100px, 30%, 150px);
+  aspect-ratio: 1/1;
+  margin-bottom: 4%;
+  z-index: 2;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  0% { filter: drop-shadow(0 0 6px #c48aff); }
+  100% { filter: drop-shadow(0 0 18px #c48aff); }
+}
+
+/* Text */
+#line1, #line2, #line3 {
+  position: relative;
+  text-align: center;
+  color: #c48aff;
+  text-shadow: 0 0 8px #a070ff, 0 2px 2px rgba(0,0,0,0.4);
+  z-index: 2;
+}
+
+#line1 { font-size: clamp(22px, 4.5vw, 32px); margin-bottom: 0.5%; }
+#line2 { font-size: clamp(20px, 4vw, 28px); margin-bottom: 0.5%; }
+#line3 { font-size: clamp(20px, 4vw, 28px); }
+
+/* Countdown flicker */
+#line3 { animation: flicker 3s infinite; }
+
+@keyframes flicker {
+  0%,19%,21%,23%,25%,54%,56%,100% { text-shadow: 0 0 8px #c48aff; }
+  20%,22%,24%,55% { text-shadow: 0 0 16px #c48aff; }
+}
+
+@keyframes bgShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+</style>
+</head>
+<body>
+
+<div id="moon-widget">
+  <img id="moon-icon" src="moon.png" alt="Moon">
+  <div id="line1">Loading...</div>
+  <div id="line2"></div>
+  <div id="line3"></div>
+</div>
+
+<script>
+// --------------------
+// Moon phase calculations
+// --------------------
+
+// Simple approximation for next phase based on current date
+function getNextMoonPhase() {
+  const phases = [
+    "New Moon",
+    "Waxing Crescent",
+    "First Quarter",
+    "Waxing Gibbous",
+    "Full Moon",
+    "Waning Gibbous",
+    "Last Quarter",
+    "Waning Crescent"
+  ];
+
+  const synodicMonth = 29.530588853; // days
+  const knownNewMoon = new Date(Date.UTC(2023, 0, 21, 0, 0, 0)); // known New Moon reference
+  const now = new Date();
+  const diffDays = (now - knownNewMoon) / (1000*60*60*24);
+  const age = diffDays % synodicMonth;
+
+  // Determine phase
+  let phaseIndex = Math.floor((age / synodicMonth) * 8);
+  let phase = phases[phaseIndex];
+
+  // Approximate next phase date
+  let nextPhaseIndex = (phaseIndex + 1) % 8;
+  let daysToNextPhase = (synodicMonth * ((phaseIndex+1)/8) - age);
+  if(daysToNextPhase < 0) daysToNextPhase += synodicMonth;
+
+  let nextPhaseDate = new Date();
+  nextPhaseDate.setHours(nextPhaseDate.getHours() + daysToNextPhase*24);
+
+  return {
+    name: phases[nextPhaseIndex],
+    date: nextPhaseDate,
+    countdownDays: Math.floor(daysToNextPhase),
+    countdownHours: Math.floor((daysToNextPhase - Math.floor(daysToNextPhase))*24)
+  };
+}
+
+// Update moon widget
+function updateMoonWidget(){
+  const nextPhase = getNextMoonPhase();
+  document.getElementById("line1").textContent = `Next Phase on ${nextPhase.date.toDateString()}:`;
+  document.getElementById("line2").textContent = nextPhase.name;
+  document.getElementById("line3").textContent = `in ${nextPhase.countdownDays} day${nextPhase.countdownDays!==1?'s':''} and ${nextPhase.countdownHours} hour${nextPhase.countdownHours!==1?'s':''}`;
+}
+updateMoonWidget();
+setInterval(updateMoonWidget, 1000*60);
+
+// --------------------
+// Floating magical orbs
+// --------------------
+const widget = document.getElementById('moon-widget');
+const orbs = [];
+const orbCount = 12;
+
+for(let i=0;i<orbCount;i++){
+  const orb = document.createElement('div');
+  orb.className='orb';
+  orb.style.width = orb.style.height = `${Math.random()*30+20}px`;
+  orb.style.left = `${Math.random()*90}%`;
+  orb.style.top = `${Math.random()*90}%`;
+  orb.style.opacity = Math.random()*0.6+0.3;
+  widget.appendChild(orb);
+  orbs.push({
+    el: orb,
+    x: parseFloat(orb.style.left),
+    y: parseFloat(orb.style.top),
+    dx: (Math.random()*0.6-0.3)/2,
+    dy: (Math.random()*0.6-0.3)/2
+  });
+}
+
+function animateOrbs(){
+  orbs.forEach(o=>{
+    o.x += o.dx;
+    o.y += o.dy;
+    if(o.x<0) { o.x=0; o.dx*=-1; }
+    if(o.x>95){ o.x=95; o.dx*=-1; }
+    if(o.y<0) { o.y=0; o.dy*=-1; }
+    if(o.y>95){ o.y=95; o.dy*=-1; }
+    o.el.style.left = o.x+'%';
+    o.el.style.top = o.y+'%';
+  });
+  requestAnimationFrame(animateOrbs);
+}
+animateOrbs();
+</script>
+
+</body>
+</html>
