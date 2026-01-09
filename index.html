@@ -72,7 +72,7 @@ body, html {
 }
 
 #line1 { font-size: clamp(22px, 4.5vw, 32px); margin-bottom: 0.5%; }
-#line2 { font-size: clamp(20px, 4vw, 28px); margin-bottom: 0.5%; }
+#line2 { font-size: clamp(24px, 5vw, 36px); font-weight: bold; margin-bottom: 0.5%; } /* BOLD & LARGER */
 #line3 { font-size: clamp(20px, 4vw, 28px); }
 
 /* Countdown flicker */
@@ -92,7 +92,6 @@ body, html {
 <body>
 
 <div id="moon-widget">
-  <!-- Use a transparent PNG of a moon as moon.png -->
   <img id="moon-icon" src="moon.png" alt="Moon">
   <div id="line1">Loading...</div>
   <div id="line2"></div>
@@ -118,7 +117,7 @@ function getNextMoonPhase() {
   ];
 
   const synodicMonth = 29.530588853; // days
-  const knownNewMoon = new Date(Date.UTC(2023, 0, 21, 0, 0, 0)); // known New Moon reference
+  const knownNewMoon = new Date(Date.UTC(2023, 0, 21, 0, 0, 0));
   const now = new Date();
   const diffDays = (now - knownNewMoon) / (1000*60*60*24);
   const age = diffDays % synodicMonth;
@@ -146,7 +145,7 @@ function updateMoonWidget(){
   const nextPhase = getNextMoonPhase();
   const date = nextPhase.date;
   const formattedDate = `${monthNames[date.getMonth()]} ${date.getDate()}`;
-  document.getElementById("line1").textContent = `Next phase on ${formattedDate}:`;
+  document.getElementById("line1").textContent = `Next Phase on ${formattedDate}:`;
   document.getElementById("line2").textContent = nextPhase.name;
   document.getElementById("line3").textContent = `in ${nextPhase.countdownDays} day${nextPhase.countdownDays!==1?'s':''} and ${nextPhase.countdownHours} hour${nextPhase.countdownHours!==1?'s':''}`;
 }
