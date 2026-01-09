@@ -92,6 +92,7 @@ body, html {
 <body>
 
 <div id="moon-widget">
+  <!-- Use a transparent PNG of a moon as moon.png -->
   <img id="moon-icon" src="moon.png" alt="Moon">
   <div id="line1">Loading...</div>
   <div id="line2"></div>
@@ -102,8 +103,8 @@ body, html {
 // --------------------
 // Moon phase calculations
 // --------------------
+const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-// Simple approximation for next phase based on current date
 function getNextMoonPhase() {
   const phases = [
     "New Moon",
@@ -122,11 +123,7 @@ function getNextMoonPhase() {
   const diffDays = (now - knownNewMoon) / (1000*60*60*24);
   const age = diffDays % synodicMonth;
 
-  // Determine phase
   let phaseIndex = Math.floor((age / synodicMonth) * 8);
-  let phase = phases[phaseIndex];
-
-  // Approximate next phase date
   let nextPhaseIndex = (phaseIndex + 1) % 8;
   let daysToNextPhase = (synodicMonth * ((phaseIndex+1)/8) - age);
   if(daysToNextPhase < 0) daysToNextPhase += synodicMonth;
@@ -142,10 +139,14 @@ function getNextMoonPhase() {
   };
 }
 
-// Update moon widget
+// --------------------
+// Update widget
+// --------------------
 function updateMoonWidget(){
   const nextPhase = getNextMoonPhase();
-  document.getElementById("line1").textContent = `Next Phase on ${nextPhase.date.toDateString()}:`;
+  const date = nextPhase.date;
+  const formattedDate = `${monthNames[date.getMonth()]} ${date.getDate()}`;
+  document.getElementById("line1").textContent = `Next phase on ${formattedDate}:`;
   document.getElementById("line2").textContent = nextPhase.name;
   document.getElementById("line3").textContent = `in ${nextPhase.countdownDays} day${nextPhase.countdownDays!==1?'s':''} and ${nextPhase.countdownHours} hour${nextPhase.countdownHours!==1?'s':''}`;
 }
